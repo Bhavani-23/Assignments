@@ -1,0 +1,127 @@
+# script1
+
+#!/bin/bash
+total_mem=$(free -m | awk '/^Mem:/{print $2}')
+used_mem=$(free -m | awk '/^Mem:/{print $3}')
+used_per=$((used_mem * 100 / total_mem))
+
+
+
+if [ $used_per -gt 80 ]; then
+  echo "Ram usage is high. The used percentage is ${used_per}%"
+else
+  echo "Ram utilization is normal. The used percentage is ${used_per}%"
+fi
+
+# script2
+
+#!/bin/bash
+
+read -p "Enter process name: " pname
+
+# Check if process is running
+pid=$(pgrep "$pname")
+if [ -z "$pid" ]; then
+    echo "Process is not running"
+    exit 1
+fi
+
+# Get memory usage
+mem_usage=$(pmap -x "$pid" | awk '/total kB/{print $3}' )
+
+# Print results
+echo "Process ID: $pid"
+echo "Current Memory Usage: $mem_usage"
+
+# script3
+
+#!/bin/bash
+
+# Get load averages from top command
+load_averages=$(top -bn1 | grep "load average:" | sed 's/.*load average: //')
+
+# Extract the last 1, 5, and 15 minute load averages
+last_1_minute=$(echo $load_averages | awk '{print $1}')
+last_5_minutes=$(echo $load_averages | awk '{print $2}')
+last_15_minutes=$(echo $load_averages | awk '{print $3}')
+
+# Print the load averages
+echo "Load averages:"
+echo "Last 1 minute: $last_1_minute"
+echo "Last 5 minutes: $last_5_minutes"
+echo "Last 15 minutes: $last_15_minutes"
+
+# Extract the current CPU utilization from top
+cpu_utilization=$(top -bn1 | grep "Cpu(s)" | sed "s/., \([0-9.]\)% id.*/\1/" | awk '{print 100 - $1}')
+
+# Extract memory usage percentage from free
+memory_usage=$(free | awk '/Mem:/ {printf("%.2f"), $3/$2 * 100.0}')
+
+# Extract disk usage percentage for root filesystem
+disk_usage=$(df / | awk '/\// {print $5}' | sed 's/%//')
+
+# Print current CPU utilization, memory usage, and disk usage
+echo "Current CPU Utilization: $cpu_utilization%"
+echo "Memory Usage: $memory_usage%"
+echo "Disk Usage: $disk_usage%"
+
+
+# script4
+
+#!/bin/bash
+
+# Get the username from input
+read -p "Enter username: " username
+
+# Check if the user exists
+if id "$username" &>/dev/null; then
+    echo "User exists."
+    # Check if the user has a password set
+    if  grep "^$username:" /etc/shadow | cut -d: -f2 | grep -q '^[^!]'; then
+      echo "Password is set."
+    else
+      echo "No password set o"
+    fi
+else
+    # Create the user if it does not exist
+    if sudo useradd "$username"; then
+        echo "User created."
+    else
+        echo "Failed to create user."
+    fi
+fi
+
+# script5
+
+#!/bin/bash
+
+
+threshold=104857600
+
+echo "Enter the directory path:"
+read directory
+
+echo "Enter the file pattern:"
+read pattern
+
+if [ ! -d "$directory" ]; then
+  echo "$directory is not a directory"
+  exit 1
+fi
+
+cd "$directory" || exit 1
+
+for file in "$pattern"; do
+  if [[ -f "$file" ]]; then
+    filesize=$(stat -c "%s" "$file")
+    if [ "$filesize" -gt "$threshold" ]; then
+      tarfile="${file}.tar.gz"
+      tar czf "$tarfile" "$file"
+      rm "$file"
+      touch "$file"
+      echo "Compressed and deleted $file"
+    fi
+  fi
+done
+
+
