@@ -4,9 +4,6 @@
 total_mem=$(free -m | awk '/^Mem:/{print $2}')
 used_mem=$(free -m | awk '/^Mem:/{print $3}')
 used_per=$((used_mem * 100 / total_mem))
-
-
-
 if [ $used_per -gt 80 ]; then
   echo "Ram usage is high. The used percentage is ${used_per}%"
 else
@@ -123,5 +120,40 @@ for file in "$pattern"; do
     fi
   fi
 done
+
+
+# script 6
+
+
+Write-Host "Enter process name"
+$processName = Read-Host
+
+$process = Get-Process -Name $processName
+
+if ($process) {
+    foreach ($p in $process) {
+        Write-Host "Process ID: $($p.Id)"
+        Write-Host "Memory: $($p.WorkingSet64 / 1MB) MB"
+        Write-Host "---"
+    }
+} else {
+    Write-Host "Process $processName is not running"
+}
+
+
+# script 7
+
+
+$sourceDirectory = "C:\Users\DPEDDADA\Documents\durga"  
+$backupDirectory = "C:\backup"
+ Get-ChildItem -path $sourceDirectory -Recurse | Where-Object {$_.LastWriteTime -lt (Get-Date).AddDays(-1)} | for Each-Object{
+   Move-Item -path $_.FullName -Destination $backupDirectory
+   write-Output "Moved file: $($_.FullName)"
+ }
+
+ if (-not (Get_ChildItem -path $backupDirectory -File)) {Write-Output"No files"}
+
+
+
 
 
