@@ -144,15 +144,31 @@ if ($process) {
 # script 7
 
 
-$sourceDirectory = "C:\Users\DPEDDADA\Documents\durga"  
-$backupDirectory = "C:\backup"
- Get-ChildItem -path $sourceDirectory -Recurse | Where-Object {$_.LastWriteTime -lt (Get-Date).AddDays(-1)} | for Each-Object{
-   Move-Item -path $_.FullName -Destination $backupDirectory
-   write-Output "Moved file: $($_.FullName)"
- }
+# Define the source and backup directories
+$sourceDir = "C:\Users\DPEDDADA\Documents\durga"  
+$backupDir =  "C:\backup"
 
- if (-not (Get_ChildItem -path $backupDirectory -File)) {Write-Output"No files"}
+# Check if the source directory exists
+if (-not (Test-Path -Path $sourceDir)) {
+    Write-Host "Source directory does not exist: $sourceDir"
+    exit
+}
 
+# Ensure the backup directory exists
+if (-not (Test-Path -Path $backupDir)) {
+    New-Item -ItemType Directory -Path $backupDir
+}
+
+# Get the current date and time
+$currentDate = Get-Date
+
+# Find and move files older than one day
+Get-ChildItem -Path $sourceDir -File | Where-Object {
+    ($currentDate - $_.LastWriteTime).Days -gt 1
+} | ForEach-Object {
+    Move-Item -Path $_.FullName -Destination $backupDir
+    Write-Host "Moved $($_.FullName) to $backupDir"
+}
 
 
 
